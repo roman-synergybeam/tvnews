@@ -408,6 +408,18 @@ function PageSettingsForm({ content, patch, department, setDepartment, departmen
         options={THEME_KEYS.map((k) => ({ value: k, label: THEMES[k].label }))}
         onChange={(v) => patch({ theme: v })}
       />
+      <SelectInput
+        label="Screen format"
+        value={content.format}
+        options={[
+          { value: '4k', label: '4K — 3840×2160 (default)' },
+          { value: '1080', label: '1080p — 1920×1080' },
+        ]}
+        onChange={(v) => patch({ format: v })}
+      />
+      <p className="muted" style={{ fontSize: 12, marginTop: -6 }}>
+        Both fill any screen; 4K renders at higher resolution for 4K TVs (heavier), 1080p is lighter.
+      </p>
       <TextInput
         label="Seconds per slide"
         type="number"

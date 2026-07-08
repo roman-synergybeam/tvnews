@@ -22,13 +22,22 @@ button { font: inherit; cursor: pointer; }
   overflow: hidden;
   background: #050505;
 }
-.nc-screen {
+/* Stage: sized to the page format (1920×1080 or 3840×2160), centered and
+   scaled to fit the container. Holds the design layer. */
+.nc-stage {
   position: absolute;
   left: 50%;
   top: 50%;
+  transform-origin: center center;
+}
+/* Design layer: always authored at 1920×1080, scaled (1× or 2×) to fill the stage. */
+.nc-screen {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 1920px;
   height: 1080px;
-  transform-origin: center center;
+  transform-origin: top left;
   color: var(--nc-white);
   font-family: Arial, Helvetica, sans-serif;
   background: var(--nc-grad);

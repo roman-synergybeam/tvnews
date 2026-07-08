@@ -345,6 +345,7 @@ export function newPageContent() {
     brand: 'News Channel',
     eventLabel: '',
     theme: DEFAULT_THEME,
+    format: '4k', // '4k' (3840×2160) by default, or '1080' (1920×1080)
     durationSec: 10,
     showClock: true,
     ticker: [],
@@ -362,6 +363,7 @@ export function normalizeContent(raw) {
     brand: typeof c.brand === 'string' ? c.brand : base.brand,
     eventLabel: typeof c.eventLabel === 'string' ? c.eventLabel : '',
     theme: THEMES[c.theme] ? c.theme : DEFAULT_THEME,
+    format: c.format === '1080' ? '1080' : '4k', // default 4K; only '1080' opts down
     durationSec: Number.isFinite(c.durationSec) && c.durationSec > 1 ? c.durationSec : 10,
     showClock: c.showClock !== false,
     ticker: Array.isArray(c.ticker) ? c.ticker.filter((t) => typeof t === 'string') : [],

@@ -4,8 +4,11 @@ import SlideView from './SlideView.jsx';
 import { renderText } from './renderText.jsx';
 import { THEMES, DEFAULT_THEME, normalizeContent } from '@/lib/slideModel.js';
 
-const STAGE_W = 1920;
-const STAGE_H = 1080;
+// The design is always authored on a 1920×1080 canvas. A page's `format` picks
+// the native render resolution: '1080' renders that canvas 1:1; '4k' renders it
+// into a native 3840×2160 stage (design scaled 2×) for sharper output on 4K TVs.
+const DESIGN_W = 1920;
+const DESIGN_H = 1080;
 
 // The News carousel. Renders a page's structured content onto a fixed
 // 1920x1080 stage that is scaled to fit whatever container it is placed in
@@ -21,6 +24,10 @@ export default function Carousel({ content, controlledIndex = null, interactive 
   const data = useMemo(() => normalizeContent(content), [content]);
   const slides = data.slides;
   const theme = THEMES[data.theme] || THEMES[DEFAULT_THEME];
+  const is4k = data.format === '4k';
+  const designScale = is4k ? 2 : 1;
+  const stageW = DESIGN_W * designScale;
+  const stageH = DESIGN_H * designScale;
   const durationMs = Math.max(2000, (data.durationSec || 10) * 1000);
   const controlled = controlledIndex !== null && controlledIndex !== undefined;
 
@@ -48,7 +55,7 @@ export default function Carousel({ content, controlledIndex = null, interactive 
     const compute = () => {
       const r = el.getBoundingClientRect();
       if (!r.width || !r.height) return;
-      setScale(Math.min(r.width / STAGE_W, r.height / STAGE_H));
+      setScale(Math.min(r.width / stageW, r.height / stageH));
     };
     compute();
     const ro = new ResizeObserver(compute);
@@ -58,7 +65,7 @@ export default function Carousel({ content, controlledIndex = null, interactive 
       ro.disconnect();
       window.removeEventListener('resize', compute);
     };
-  }, []);
+  }, [stageW, stageH]);
 
   // ---- Clock ------------------------------------------------------------
   useEffect(() => {
@@ -133,8 +140,12 @@ export default function Carousel({ content, controlledIndex = null, interactive 
   return (
     <div className="nc-fit" ref={fitRef}>
       <div
+        className="nc-stage"
+        style={{ width: stageW, height: stageH, transform: `translate(-50%, -50%) scale(${scale})` }}
+      >
+      <div
         className="nc-screen"
-        style={{ ...theme.vars, transform: `translate(-50%, -50%) scale(${scale})` }}
+        style={{ ...theme.vars, transform: `scale(${designScale})` }}
       >
         <div className="nc-noise" />
 
@@ -203,6 +214,7 @@ export default function Carousel({ content, controlledIndex = null, interactive 
             </div>
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   );
