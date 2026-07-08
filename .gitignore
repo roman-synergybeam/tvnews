@@ -1,0 +1,20 @@
+node_modules
+.next
+.next.root-stale/
+/data/*.db
+/data/*.db-*
+/public/uploads/*
+!/public/uploads/.gitkeep
+.env
+.env*.local
+
+# --- secrets / infra: never commit these ---
+.cloudflared/
+*.pem
+*.token
+tools/cloudflared
+
+# local Claude Code settings (permissions etc.)
+.claude/settings.local.json
+
+npm-debug.log*
