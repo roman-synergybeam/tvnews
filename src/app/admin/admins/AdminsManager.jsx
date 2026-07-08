@@ -1,7 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const ROLE_LABEL = { super_admin: 'Super admin', editor: 'Editor' };
+
+// Strong password generator (no ambiguous characters), client-side.
+function genPassword(len = 16) {
+  const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  let s = '';
+  for (let i = 0; i < len; i++) s += alpha[arr[i] % alpha.length];
+  return s;
+}
 
 export default function AdminsManager({ initialUsers, meId, departments = [] }) {
   const [users, setUsers] = useState(initialUsers);
@@ -130,6 +140,11 @@ function UserModal({ title, initial, requirePassword, editing, departments = [],
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  // New admins get a strong password by default (creator copies + shares it).
+  useEffect(() => {
+    if (!editing) setPassword(genPassword());
+  }, [editing]);
+
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
@@ -188,15 +203,27 @@ function UserModal({ title, initial, requirePassword, editing, departments = [],
         ) : null}
         <label className="field">
           <span>
-            Password {editing ? <small>— leave blank to keep current</small> : <small>— min 8 characters</small>}
+            Password{' '}
+            {editing ? (
+              <small>— leave blank to keep current</small>
+            ) : (
+              <small>— auto-generated; copy &amp; share it with the new admin</small>
+            )}
           </span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required={requirePassword}
-            autoComplete="new-password"
-          />
+          <div className="row" style={{ gap: 6 }}>
+            <input
+              type={editing ? 'password' : 'text'}
+              className="mono"
+              style={{ flex: 1 }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required={requirePassword}
+              autoComplete="new-password"
+            />
+            <button type="button" className="btn btn-sm" onClick={() => setPassword(genPassword())}>
+              Generate
+            </button>
+          </div>
         </label>
         {error ? <div className="error">{error}</div> : null}
         <div className="row" style={{ justifyContent: 'flex-end', marginTop: 8 }}>

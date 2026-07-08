@@ -15,7 +15,11 @@ export default function TvDisplay({ slug, endpoint }) {
 
   const poll = useCallback(async () => {
     try {
-      const res = await fetch(stateUrl, { cache: 'no-store' });
+      // Cache-bust every poll: smart-TV built-in browsers (and any edge cache)
+      // can serve a stale response, which would hide page edits until a manual
+      // reload. A unique query param guarantees a fresh fetch each time.
+      const url = `${stateUrl}${stateUrl.includes('?') ? '&' : '?'}_=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
       if (res.status === 404) {
         setStatus('notfound');
         return;

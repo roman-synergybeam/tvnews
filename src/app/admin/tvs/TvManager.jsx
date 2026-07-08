@@ -21,6 +21,7 @@ export default function TvManager({ initialTvs, pages, brands = [], departments,
   const [origin, setOrigin] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [manageTv, setManageTv] = useState(null);
+  const [editTv, setEditTv] = useState(null);
   const [error, setError] = useState('');
   const [copiedId, setCopiedId] = useState(null);
   const [filterDept, setFilterDept] = useState('');
@@ -183,6 +184,7 @@ export default function TvManager({ initialTvs, pages, brands = [], departments,
                   <td>
                     <div className="row" style={{ gap: 6 }}>
                       <button className="btn btn-sm btn-accent" onClick={() => setManageTv(tv)}>Manage</button>
+                      <button className="btn btn-sm" onClick={() => setEditTv(tv)}>Rename</button>
                       <button className="btn btn-sm btn-danger" onClick={() => remove(tv)}>Delete</button>
                     </div>
                   </td>
@@ -219,7 +221,86 @@ export default function TvManager({ initialTvs, pages, brands = [], departments,
           }}
         />
       ) : null}
+
+      {editTv ? (
+        <EditTvModal
+          tv={editTv}
+          scoped={scoped}
+          departments={departments}
+          onClose={() => setEditTv(null)}
+          onSaved={(updated) => {
+            setTvs((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+            setEditTv(null);
+          }}
+        />
+      ) : null}
     </>
+  );
+}
+
+// ---- Rename / edit a TV -----------------------------------------------------
+function EditTvModal({ tv, scoped, departments = [], onClose, onSaved }) {
+  const [name, setName] = useState(tv.name || '');
+  const [department, setDepartment] = useState(tv.department || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const body = { name: name.trim() };
+      if (!scoped) body.department = department;
+      const res = await fetch(`/api/admin/tvs/${tv.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed');
+      onSaved(json.tv);
+    } catch (e) {
+      setError(e.message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="modal-back" onClick={onClose}>
+      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
+        <h2>Rename TV</h2>
+        <label className="field">
+          <span>Name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
+        </label>
+        {!scoped ? (
+          <label className="field">
+            <span>Department</span>
+            <input
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              placeholder="(none)"
+              list="edit-tv-dept-list"
+            />
+            <datalist id="edit-tv-dept-list">
+              {departments.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
+          </label>
+        ) : null}
+        {error ? <div className="error">{error}</div> : null}
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 8 }}>
+          <button type="button" className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        </div>
+      </form>
+    </div>
   );
 }
 
