@@ -81,6 +81,8 @@ function migrate(db) {
       slug       TEXT NOT NULL UNIQUE,
       hostname   TEXT NOT NULL DEFAULT '',   -- e.g. news.go4rex.com (used to build TV links)
       logo_url   TEXT NOT NULL DEFAULT '',   -- brand logo shown on screens + in admin
+      turnstile_site_key   TEXT NOT NULL DEFAULT '',  -- Cloudflare Turnstile (public) site key
+      turnstile_secret_key TEXT NOT NULL DEFAULT '',  -- Turnstile secret key (server-side only)
       created_at TEXT NOT NULL
     );
   `);
@@ -91,6 +93,8 @@ function migrate(db) {
   addColumn(db, 'tvs', 'brand_id', 'INTEGER');
   addColumn(db, 'pages', 'brand_id', 'INTEGER');
   addColumn(db, 'brands', 'logo_url', "TEXT NOT NULL DEFAULT ''");
+  addColumn(db, 'brands', 'turnstile_site_key', "TEXT NOT NULL DEFAULT ''");
+  addColumn(db, 'brands', 'turnstile_secret_key', "TEXT NOT NULL DEFAULT ''");
 
   // --- Backfill playlist from the legacy single-page assignment ---
   const legacy = db

@@ -234,9 +234,22 @@ function rowToBrand(row) {
     slug: row.slug,
     hostname: row.hostname || '',
     logo_url: row.logo_url || '',
+    turnstile_site_key: row.turnstile_site_key || '', // public; safe to expose to the client
     tv_count: row.tv_count ?? 0,
     created_at: row.created_at,
   };
+}
+
+// Server-only: fetch a brand's Turnstile keys by request hostname. The secret
+// key is intentionally NOT part of rowToBrand so it never reaches the client.
+export function getBrandTurnstile(hostname) {
+  const h = String(hostname || '').split(':')[0].trim().toLowerCase();
+  if (!h) return null;
+  const row = db
+    .prepare('SELECT turnstile_site_key, turnstile_secret_key FROM brands WHERE hostname = ?')
+    .get(h);
+  if (!row) return null;
+  return { siteKey: row.turnstile_site_key || '', secretKey: row.turnstile_secret_key || '' };
 }
 
 const BRAND_SELECT = `
